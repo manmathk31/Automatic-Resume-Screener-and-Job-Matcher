@@ -1,15 +1,37 @@
+import os
+import google.generativeai as genai
+
+try:
+    from decouple import config
+    api_key = config("GEMINI_API_KEY", default=None)
+except ImportError:
+    api_key = os.getenv("GEMINI_API_KEY")
+
+if api_key:
+    genai.configure(api_key=api_key)
+
 def generate_assistant_response(query: str, context: str) -> str:
-    \"\"\"
-    Mock for LLM response generation in HR Assistant.
-    In reality, use OpenAI, Anthropic, or an open-source LLM.
-    \"\"\"
-    query_lower = query.lower()
+    # a) what the system prompt string looks like (built from context)
+    system_prompt = (
+        "You are an expert HR Assistant. Use the provided context to answer questions "
+        "about candidate rankings and job matching.\n\n"
+        f"Context:\n{context}"
+    )
     
-    if "top candidates" in query_lower:
-        return f"Based on the screening results, here are the top candidates context: {context}\nThey match closely with Python and ML requirements."
-    elif "why" in query_lower and "ranked first" in query_lower:
-        return f"The top candidate ranks highest because they match core requirements. Context details: {context}"
-    elif "missing" in query_lower:
-        return f"The most commonly missing skill among top candidates is Cloud Deployment. Context: {context}"
+    # b) what the user message string looks like (the query)
+    user_message = query
     
-    return f"Assistant analyzed your query '{query}' against current database records. Found context: {context}"
+    # c) a comment block:
+    # YOUR LLM CALL GOES HERE — see step 3
+    if not api_key:
+        return "Error: GEMINI_API_KEY is not configured in environment."
+        
+    try:
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=system_prompt
+        )
+        response = model.generate_content(user_message)
+        return response.text
+    except Exception as e:
+        return f"Error communicating with Gemini API: {e}"

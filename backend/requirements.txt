@@ -1,6 +1,1 @@
-fastapi
-uvicorn
-sqlalchemy
-pydantic
-python-multipart
-python-dotenv
+# See root requirements.txt

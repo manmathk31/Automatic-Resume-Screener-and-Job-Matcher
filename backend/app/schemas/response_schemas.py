@@ -12,7 +12,7 @@ class CandidateResponse(BaseModel):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CandidateRankingResponse(BaseModel):
     candidate_id: int
@@ -30,7 +30,7 @@ class JobResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AssistantResponse(BaseModel):
     response: str
