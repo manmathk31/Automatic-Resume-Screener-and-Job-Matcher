@@ -54,3 +54,14 @@ pyrightconfig.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# MVP Hardening
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.db
+resumes/*.pdf
+logs/
+.DS_Store

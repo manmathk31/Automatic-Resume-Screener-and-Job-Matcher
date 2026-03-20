@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, JSON, DateTime
+from sqlalchemy import Column, Integer, String, Float, JSON, DateTime, ForeignKey
 from datetime import datetime
 from app.database.database import Base
 
@@ -13,3 +13,4 @@ class Candidate(Base):
     projects = Column(JSON, nullable=True)
     embedding = Column(JSON, nullable=True) # Storing embedding as JSON for SQLite, use vector DB later
     created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)

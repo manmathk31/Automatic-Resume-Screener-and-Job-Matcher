@@ -1,27 +1,29 @@
+import numpy as np
 from typing import List, Dict
+from ml_pipeline.embeddings.embedding_generator import generate_embedding
+from ml_pipeline.ranking.similarity_engine import compute_similarity
 
-# Mocking Sentence-BERT logic until 'Manmath' integrates the real ML model
-# from sentence_transformers import SentenceTransformer
-# model = SentenceTransformer('all-MiniLM-L6-v2')
+def generate_embedding_real(text: str) -> List[float]:
+    """ Uses ml_pipeline to generate an embedding for a job or text """
+    embedding = generate_embedding(text)
+    if embedding is not None:
+        return embedding.tolist()
+    return []
 
-def generate_embedding(text: str) -> List[float]:
-    \"\"\" Generate a dummy embedding vector for similarity computation \"\"\"
-    # return model.encode(text).tolist()
-    return [0.1, 0.2, 0.3, 0.4]
-
-def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
-    \"\"\" Compute cosine similarity. Mocked for now. \"\"\"
-    # import numpy as np
-    # return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-    return 0.85
-
-def rank_candidates(job_embedding: List[float], candidate_embeddings: Dict[int, List[float]]) -> Dict[int, float]:
+def rank_candidates_real(job_embedding_list: List[float], candidate_embeddings_dict: Dict[int, List[float]]) -> Dict[int, float]:
+    """ Computes semantic similarity for each candidate relative to the job """
     ranks = {}
-    for cid, emb in candidate_embeddings.items():
-        if emb:
-            ranks[cid] = cosine_similarity(job_embedding, emb)
+    job_emb_arr = np.array(job_embedding_list)
+    for cid, emb_list in candidate_embeddings_dict.items():
+        if emb_list and len(emb_list) == 384:
+            cand_emb_arr = np.array(emb_list)
+            score = compute_similarity(cand_emb_arr, job_emb_arr)
+            # Clip between 0.0 and 1.0 just in case
+            score = max(0.0, min(1.0, float(score)))
+            ranks[cid] = score
         else:
             ranks[cid] = 0.0
-    # Sort descending
+            
+    # Sort descending based on semantic score
     sorted_ranks = {k: v for k, v in sorted(ranks.items(), key=lambda item: item[1], reverse=True)}
     return sorted_ranks
