@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs — AI-RecruitX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+    <aside id="sidebar"></aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="gradient-text">Jobs</h1>
+                <p class="page-subtitle">Manage your job postings and run AI screening</p>
+            </div>
+            <button class="btn btn-primary" id="toggleCreateBtn" onclick="toggleCreatePanel()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Job
+            </button>
+        </div>
+
+        <!-- Create Job Panel -->
+        <div id="createPanel" style="max-height:0; overflow:hidden; transition:max-height 0.4s ease, opacity 0.3s ease; opacity:0; margin-bottom:24px;">
+            <div class="card-static" style="padding:32px;">
+                <h3 style="font-size:18px; margin-bottom:24px;">Create New Job</h3>
+
+                <div class="form-group">
+                    <label class="form-label">Job Title</label>
+                    <input type="text" class="input-plain" id="jobTitle" placeholder="e.g. Senior Python Developer" maxlength="200">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <div style="position:relative;">
+                        <textarea class="input-plain" id="jobDescription" placeholder="Describe the role, responsibilities, and requirements..." maxlength="5000" oninput="updateCharCount()"></textarea>
+                        <span id="charCount" style="position:absolute; bottom:8px; right:12px; font-size:11px; color:var(--text-tertiary);">0 / 5000</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Required Skills</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" class="input-plain" id="skillInput" placeholder="Type a skill and press Enter" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault(); addSkill();}">
+                        <button class="btn btn-secondary" onclick="addSkill()">Add</button>
+                    </div>
+                    <div id="skillTags" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+                    <button class="btn btn-ghost" onclick="toggleCreatePanel()">Cancel</button>
+                    <button class="btn btn-primary" id="createJobBtn" onclick="handleCreateJob()">
+                        <span id="createJobText">Create Job →</span>
+                        <div class="spinner spinner-sm" id="createJobSpinner" style="display:none;"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs Grid -->
+        <div id="jobsGrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;"></div>
+
+        <!-- Empty state -->
+        <div id="emptyJobs" class="empty-state" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px; height:48px; margin:0 auto 16px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+            <h3>No jobs yet</h3>
+            <p>Create your first job to start screening candidates</p>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display:none;">
+            <button id="prevBtn" onclick="changePage(-1)">← Previous</button>
+            <span class="page-info" id="pageInfo"></span>
+            <button id="nextBtn" onclick="changePage(1)">Next →</button>
+        </div>
+    </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    const user = requireAuth();
+    renderSidebar('jobs');
+
+    let currentPage = 1;
+    const pageSize = 6;
+    let skills = [];
+    let panelOpen = false;
+
+    // Toggle create panel
+    function toggleCreatePanel() {
+        const panel = document.getElementById('createPanel');
+        panelOpen = !panelOpen;
+        if (panelOpen) {
+            panel.style.maxHeight = '600px';
+            panel.style.opacity = '1';
+        } else {
+            panel.style.maxHeight = '0';
+            panel.style.opacity = '0';
+        }
+    }
+
+    // Character count
+    function updateCharCount() {
+        const len = document.getElementById('jobDescription').value.length;
+        const el = document.getElementById('charCount');
+        el.textContent = `${len} / 5000`;
+        el.style.color = len > 4500 ? 'var(--warning)' : 'var(--text-tertiary)';
+    }
+
+    // Skill management
+    function addSkill() {
+        const input = document.getElementById('skillInput');
+        const skill = input.value.trim();
+        if (!skill || skills.includes(skill)) { input.value = ''; return; }
+        if (skills.length >= 30) { showToast('Maximum 30 skills allowed', 'warning'); return; }
+
+        skills.push(skill);
+        input.value = '';
+        renderSkills();
+    }
+
+    function removeSkill(index) {
+        skills.splice(index, 1);
+        renderSkills();
+    }
+
+    function renderSkills() {
+        document.getElementById('skillTags').innerHTML = skills.map((s, i) => `
+            <span class="tag tag-accent tag-removable" style="animation:fadeIn 0.2s ease;">
+                ${s}
+                <button class="tag-remove" onclick="removeSkill(${i})">×</button>
+            </span>
+        `).join('');
+    }
+
+    // Create job
+    async function handleCreateJob() {
+        const title = document.getElementById('jobTitle').value.trim();
+        const description = document.getElementById('jobDescription').value.trim();
+
+        if (!title || !description || skills.length === 0) {
+            showToast('Please fill in all fields and add at least one skill', 'warning');
+            return;
+        }
+
+        const btn = document.getElementById('createJobBtn');
+        const text = document.getElementById('createJobText');
+        const spinner = document.getElementById('createJobSpinner');
+        btn.disabled = true;
+        text.style.display = 'none';
+        spinner.style.display = 'block';
+
+        try {
+            await createJob(title, description, skills);
+            showToast('Job created! ✓', 'success');
+            document.getElementById('jobTitle').value = '';
+            document.getElementById('jobDescription').value = '';
+            skills = [];
+            renderSkills();
+            updateCharCount();
+            toggleCreatePanel();
+            loadJobs();
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            text.style.display = 'inline';
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Load & render jobs
+    async function loadJobs() {
+        const grid = document.getElementById('jobsGrid');
+        grid.innerHTML = createCardSkeleton(4);
+
+        try {
+            const data = await getJobs(currentPage, pageSize);
+            if (!data.items || data.items.length === 0) {
+                grid.innerHTML = '';
+                document.getElementById('emptyJobs').style.display = 'block';
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('emptyJobs').style.display = 'none';
+
+            grid.innerHTML = data.items.map(job => `
+                <div class="card" style="display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <h4 style="font-size:17px; font-weight:600; flex:1;">${job.title}</h4>
+                        <span style="font-size:12px; color:var(--text-tertiary); white-space:nowrap; margin-left:12px;">${formatDate(job.created_at)}</span>
+                    </div>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:16px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${truncate(job.description, 150)}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:20px;">
+                        ${job.required_skills.map(s => `<span class="tag tag-accent">${s}</span>`).join('')}
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:auto;">
+                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="handleRunScreening(${job.id}, this)">
+                            <span>Run Screening</span>
+                            <div class="spinner spinner-sm" style="display:none;"></div>
+                        </button>
+                        <a href="results.html?job_id=${job.id}" class="btn btn-ghost btn-sm" style="flex:1;" onclick="event.preventDefault(); navigate('results.html?job_id=${job.id}');">View Results</a>
+                    </div>
+                </div>
+            `).join('');
+
+            // Pagination
+            const totalPages = Math.ceil(data.total / pageSize);
+            if (totalPages > 1) {
+                document.getElementById('pagination').style.display = 'flex';
+                document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+                document.getElementById('prevBtn').disabled = currentPage <= 1;
+                document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+            } else {
+                document.getElementById('pagination').style.display = 'none';
+            }
+        } catch (err) {
+            grid.innerHTML = `<div class="empty-state"><h3>Failed to load jobs</h3><p>${err.message}</p></div>`;
+        }
+    }
+
+    async function handleRunScreening(jobId, btn) {
+        const text = btn.querySelector('span');
+        const spinner = btn.querySelector('.spinner');
+        btn.disabled = true;
+        text.style.display = 'none';
+        spinner.style.display = 'block';
+
+        try {
+            await runScreening(jobId);
+            showToast('Screening complete!', 'success');
+            navigate('results.html?job_id=' + jobId);
+        } catch (err) {
+            showToast(err.message, 'error');
+            btn.disabled = false;
+            text.style.display = 'inline';
+            spinner.style.display = 'none';
+        }
+    }
+
+    function changePage(delta) {
+        currentPage += delta;
+        loadJobs();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    loadJobs();
+</script>
+
+</body>
+</html>

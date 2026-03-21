@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — AI-RecruitX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+    <aside id="sidebar"></aside>
+
+    <main class="main-content">
+        <!-- Greeting -->
+        <div class="page-header">
+            <div>
+                <h1 id="greeting" class="gradient-text">Good evening</h1>
+                <p class="page-subtitle" id="currentDate"></p>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:40px;" id="metricsGrid">
+            <div class="card metric-card">
+                <div class="metric-icon" style="background:rgba(99,102,241,0.12); color:#6366f1;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                </div>
+                <div class="metric-value" id="metricJobs">—</div>
+                <div class="metric-label">Total Jobs</div>
+                <div class="metric-glow" style="background:#6366f1;"></div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-icon" style="background:rgba(139,92,246,0.12); color:#8b5cf6;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div class="metric-value" id="metricCandidates">—</div>
+                <div class="metric-label">Total Candidates</div>
+                <div class="metric-glow" style="background:#8b5cf6;"></div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-icon" style="background:rgba(6,182,212,0.12); color:#06b6d4;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div class="metric-value" id="metricScreenings">—</div>
+                <div class="metric-label">Screenings Run</div>
+                <div class="metric-glow" style="background:#06b6d4;"></div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-icon" style="background:rgba(16,185,129,0.12); color:#10b981;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="metric-value gradient-text-accent" style="font-size:20px;">Ready</div>
+                <div class="metric-label">System Status</div>
+                <div class="metric-glow" style="background:#10b981;"></div>
+            </div>
+        </div>
+
+        <!-- Recent Jobs -->
+        <div class="card-static" style="margin-bottom:32px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="font-size:18px;">Recent Jobs</h3>
+                <a href="jobs.html" class="btn btn-ghost btn-sm" onclick="event.preventDefault(); navigate('jobs.html');">View All →</a>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Required Skills</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentJobsBody">
+                        <!-- Skeleton or data -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyJobs" class="empty-state" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                <h3>No jobs yet</h3>
+                <p>Create your first job posting to get started</p>
+                <a href="jobs.html" class="btn btn-primary btn-sm" onclick="event.preventDefault(); navigate('jobs.html');">Create Job →</a>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;">
+            <div class="card" style="cursor:pointer;" onclick="navigate('upload.html')">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div style="width:52px; height:52px; border-radius:14px; background:rgba(6,182,212,0.12); display:flex; align-items:center; justify-content:center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="font-size:16px; margin-bottom:4px;">Upload Resumes</h4>
+                        <p style="font-size:13px; color:var(--text-secondary);">Add PDF resumes for AI analysis and ranking</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="cursor:pointer;" onclick="navigate('jobs.html')">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div style="width:52px; height:52px; border-radius:14px; background:rgba(99,102,241,0.12); display:flex; align-items:center; justify-content:center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="font-size:16px; margin-bottom:4px;">Create New Job</h4>
+                        <p style="font-size:13px; color:var(--text-secondary);">Define a job and required skills to screen against</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    const user = requireAuth();
+
+    // Greeting
+    (function setGreeting() {
+        const hour = new Date().getHours();
+        let greeting = 'Good evening';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 17) greeting = 'Good afternoon';
+        const name = user ? user.name : '';
+        document.getElementById('greeting').textContent = `${greeting}, ${name}`;
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+        });
+    })();
+
+    // Render sidebar
+    renderSidebar('dashboard');
+
+    // Load metrics
+    async function loadMetrics() {
+        try {
+            const [jobsData, candidatesData] = await Promise.all([
+                getJobs(1, 1),
+                getCandidates(1, 1)
+            ]);
+            const jobsEl = document.getElementById('metricJobs');
+            const candsEl = document.getElementById('metricCandidates');
+            animateCounter(jobsEl, jobsData.total || 0, 1500);
+            animateCounter(candsEl, candidatesData.total || 0, 1500);
+
+            // For screenings, we'll just show total jobs as proxy
+            const screenEl = document.getElementById('metricScreenings');
+            animateCounter(screenEl, jobsData.total || 0, 1500);
+        } catch (err) {
+            console.error('Failed to load metrics:', err);
+        }
+    }
+
+    // Load recent jobs
+    async function loadRecentJobs() {
+        const tbody = document.getElementById('recentJobsBody');
+        showTableSkeleton(tbody, 5, 4);
+
+        try {
+            const data = await getJobs(1, 5);
+            if (!data.items || data.items.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('emptyJobs').style.display = 'block';
+                return;
+            }
+
+            tbody.innerHTML = data.items.map(job => `
+                <tr>
+                    <td style="font-weight:500;">${job.title}</td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            ${job.required_skills.slice(0, 3).map(s => `<span class="tag tag-accent">${s}</span>`).join('')}
+                            ${job.required_skills.length > 3 ? `<span class="tag tag-neutral">+${job.required_skills.length - 3}</span>` : ''}
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary); font-size:13px;">${formatDate(job.created_at)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="runJobScreening(${job.id}, this)">
+                            <span>Run Screening</span>
+                            <div class="spinner spinner-sm" style="display:none;"></div>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-tertiary); padding:24px;">Failed to load jobs</td></tr>`;
+        }
+    }
+
+    async function runJobScreening(jobId, btn) {
+        const text = btn.querySelector('span');
+        const spinner = btn.querySelector('.spinner');
+        btn.disabled = true;
+        text.style.display = 'none';
+        spinner.style.display = 'block';
+
+        try {
+            await runScreening(jobId);
+            showToast('Screening complete!', 'success');
+            navigate('results.html?job_id=' + jobId);
+        } catch (err) {
+            showToast(err.message, 'error');
+            btn.disabled = false;
+            text.style.display = 'inline';
+            spinner.style.display = 'none';
+        }
+    }
+
+    loadMetrics();
+    loadRecentJobs();
+</script>
+
+</body>
+</html>

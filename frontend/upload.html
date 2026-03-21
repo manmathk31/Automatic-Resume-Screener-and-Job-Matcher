@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Resumes — AI-RecruitX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+    <aside id="sidebar"></aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="gradient-text">Upload Resumes</h1>
+                <p class="page-subtitle">Upload PDF resumes to add candidates to your database</p>
+            </div>
+        </div>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click();">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="upload-title">Drag & drop PDF resumes here</div>
+            <div class="upload-subtitle">or click to browse files</div>
+            <div class="upload-hint">Multiple files supported · PDF only</div>
+            <input type="file" id="fileInput" accept=".pdf" multiple style="display:none;" onchange="handleFileSelect(this.files)">
+        </div>
+
+        <!-- File List -->
+        <div id="fileListSection" style="display:none; margin-top:24px;">
+            <div class="card-static" style="padding:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h4 style="font-size:15px;">Selected Files</h4>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-ghost btn-sm" onclick="clearFiles()">Clear All</button>
+                        <button class="btn btn-primary btn-sm" id="uploadBtn" onclick="handleUpload()">
+                            <span id="uploadBtnText">Upload All</span>
+                            <div class="spinner spinner-sm" id="uploadSpinner" style="display:none;"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div id="progressArea" style="display:none; margin-bottom:16px;">
+                    <div class="progress-track">
+                        <div class="progress-fill accent" id="uploadProgress" style="width:0%;"></div>
+                    </div>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-top:4px;" id="progressText">Uploading...</p>
+                </div>
+
+                <div id="fileList"></div>
+            </div>
+        </div>
+
+        <!-- Candidates List -->
+        <div style="margin-top:40px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <h3 style="font-size:18px;">Your Candidates</h3>
+                    <span class="badge badge-accent" id="candidateCount">0</span>
+                </div>
+            </div>
+
+            <div class="card-static">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Skills</th>
+                                <th>Uploaded</th>
+                            </tr>
+                        </thead>
+                        <tbody id="candidatesBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="emptyCandidates" class="empty-state" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px; height:48px; margin:0 auto 16px;"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <h3>No candidates yet</h3>
+                    <p>Upload resumes above to get started</p>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="candidatePagination" style="display:none;">
+                    <button id="candPrevBtn" onclick="changeCandidatePage(-1)">← Previous</button>
+                    <span class="page-info" id="candPageInfo"></span>
+                    <button id="candNextBtn" onclick="changeCandidatePage(1)">Next →</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    const user = requireAuth();
+    renderSidebar('upload');
+
+    let selectedFiles = [];
+    let candidatePage = 1;
+    const candidatePageSize = 10;
+
+    // Drag & Drop
+    const zone = document.getElementById('uploadZone');
+
+    zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('dragover');
+    });
+
+    zone.addEventListener('dragleave', () => {
+        zone.classList.remove('dragover');
+    });
+
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        handleFileSelect(e.dataTransfer.files);
+    });
+
+    function handleFileSelect(fileList) {
+        const newFiles = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+        if (newFiles.length === 0) {
+            showToast('Only PDF files are supported', 'warning');
+            return;
+        }
+        selectedFiles = [...selectedFiles, ...newFiles];
+        renderFileList();
+    }
+
+    function renderFileList() {
+        const section = document.getElementById('fileListSection');
+        const list = document.getElementById('fileList');
+
+        if (selectedFiles.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = 'block';
+        list.innerHTML = selectedFiles.map((file, i) => `
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04);" id="fileRow-${i}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
+                    <div style="font-size:11px; color:var(--text-tertiary);">${(file.size / 1024).toFixed(1)} KB</div>
+                </div>
+                <span class="badge badge-neutral" id="status-${i}">Pending</span>
+                <button class="btn btn-ghost btn-sm" onclick="removeFile(${i})" style="padding:4px 8px; font-size:14px;">×</button>
+            </div>
+        `).join('');
+    }
+
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        renderFileList();
+    }
+
+    function clearFiles() {
+        selectedFiles = [];
+        renderFileList();
+        document.getElementById('fileInput').value = '';
+        document.getElementById('progressArea').style.display = 'none';
+    }
+
+    async function handleUpload() {
+        if (selectedFiles.length === 0) return;
+
+        const btn = document.getElementById('uploadBtn');
+        const text = document.getElementById('uploadBtnText');
+        const spinner = document.getElementById('uploadSpinner');
+        const progressArea = document.getElementById('progressArea');
+        const progressBar = document.getElementById('uploadProgress');
+        const progressText = document.getElementById('progressText');
+
+        btn.disabled = true;
+        text.style.display = 'none';
+        spinner.style.display = 'block';
+        progressArea.style.display = 'block';
+
+        let completed = 0;
+        let errors = 0;
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const statusEl = document.getElementById('status-' + i);
+            if (statusEl) {
+                statusEl.className = 'badge badge-warning';
+                statusEl.innerHTML = '<div class="spinner spinner-sm" style="border-top-color:#f59e0b;"></div> Processing...';
+            }
+
+            try {
+                await uploadResume(selectedFiles[i]);
+                if (statusEl) {
+                    statusEl.className = 'badge badge-success';
+                    statusEl.textContent = 'Done ✓';
+                }
+            } catch (err) {
+                errors++;
+                if (statusEl) {
+                    statusEl.className = 'badge badge-danger';
+                    statusEl.textContent = 'Error ✗';
+                }
+            }
+
+            completed++;
+            const pct = Math.round((completed / selectedFiles.length) * 100);
+            progressBar.style.width = pct + '%';
+            progressText.textContent = `Processed ${completed} of ${selectedFiles.length} files`;
+        }
+
+        btn.disabled = false;
+        text.style.display = 'inline';
+        spinner.style.display = 'none';
+
+        if (errors === 0) {
+            showToast(`All ${completed} resumes uploaded successfully! ✓`, 'success');
+        } else {
+            showToast(`${completed - errors} uploaded, ${errors} failed`, 'warning');
+        }
+
+        loadCandidates();
+    }
+
+    // Load candidates
+    async function loadCandidates() {
+        const tbody = document.getElementById('candidatesBody');
+        showTableSkeleton(tbody, 5, 3);
+
+        try {
+            const data = await getCandidates(candidatePage, candidatePageSize);
+            document.getElementById('candidateCount').textContent = data.total || 0;
+
+            if (!data.items || data.items.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('emptyCandidates').style.display = 'block';
+                document.getElementById('candidatePagination').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('emptyCandidates').style.display = 'none';
+
+            tbody.innerHTML = data.items.map(c => `
+                <tr>
+                    <td style="font-weight:500;">${c.name}</td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            ${(c.skills || []).slice(0, 4).map(s => `<span class="tag tag-accent">${s}</span>`).join('')}
+                            ${(c.skills || []).length > 4 ? `<span class="tag tag-neutral">+${c.skills.length - 4}</span>` : ''}
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary); font-size:13px;">${formatDate(c.created_at)}</td>
+                </tr>
+            `).join('');
+
+            // Pagination
+            const totalPages = Math.ceil(data.total / candidatePageSize);
+            if (totalPages > 1) {
+                document.getElementById('candidatePagination').style.display = 'flex';
+                document.getElementById('candPageInfo').textContent = `Page ${candidatePage} of ${totalPages}`;
+                document.getElementById('candPrevBtn').disabled = candidatePage <= 1;
+                document.getElementById('candNextBtn').disabled = candidatePage >= totalPages;
+            } else {
+                document.getElementById('candidatePagination').style.display = 'none';
+            }
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-tertiary); padding:24px;">Failed to load candidates</td></tr>`;
+        }
+    }
+
+    function changeCandidatePage(delta) {
+        candidatePage += delta;
+        loadCandidates();
+    }
+
+    loadCandidates();
+</script>
+
+</body>
+</html>

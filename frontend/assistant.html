@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant — AI-RecruitX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+    <aside id="sidebar"></aside>
+
+    <main class="main-content" style="padding:0; display:flex; flex-direction:column; height:100vh;">
+        <div class="chat-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:12px; background:var(--gradient-accent); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#fff;">AI</div>
+                    <div>
+                        <h3 style="font-size:16px; margin-bottom:2px;">AI Assistant</h3>
+                        <span style="font-size:12px; color:var(--text-tertiary);">Powered by Gemini 2.0 Flash</span>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:12px; color:var(--text-tertiary);">Context:</span>
+                    <select class="input-plain" id="jobContext" style="width:auto; min-width:180px; font-size:13px; padding:8px 32px 8px 12px;">
+                        <option value="">All Candidates</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome message -->
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="width:32px; height:32px; border-radius:8px; background:var(--gradient-accent); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">AI</div>
+                    <div class="chat-bubble assistant">
+                        <p style="margin-bottom:8px;">Hi! I'm your <strong>AI HR Assistant</strong> powered by Gemini.</p>
+                        <p style="margin-bottom:8px;">I can help you analyze candidates, explain rankings, compare profiles, and answer any hiring questions.</p>
+                        <p>Select a <strong>job above</strong> to get context-aware insights, or ask me anything! 💡</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggested Prompts -->
+            <div class="suggested-prompts" id="suggestedPrompts">
+                <button class="suggested-prompt" onclick="sendSuggested('Who is the best candidate for this job?')">🏆 Who is the best candidate?</button>
+                <button class="suggested-prompt" onclick="sendSuggested('What skills are most commonly missing among the candidates?')">📊 What skills are most commonly missing?</button>
+                <button class="suggested-prompt" onclick="sendSuggested('Generate 5 interview questions for the top candidate')">💬 Generate 5 interview questions</button>
+                <button class="suggested-prompt" onclick="sendSuggested('Summarize the top 3 candidates with their strengths and weaknesses')">📋 Summarize the top 3 candidates</button>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <div style="flex:1; position:relative;">
+                    <textarea id="chatInput" placeholder="Ask anything about your candidates... (Enter to send)" rows="1"
+                        onkeydown="handleKeyDown(event)" oninput="autoResize(this); updateCharCounter();"
+                        maxlength="1000"></textarea>
+                    <span id="charCounter" style="position:absolute; bottom:8px; right:12px; font-size:11px; color:var(--text-tertiary);"></span>
+                </div>
+                <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    const user = requireAuth();
+    renderSidebar('assistant');
+
+    let isWaiting = false;
+
+    // Load jobs for context selector
+    async function loadJobContext() {
+        try {
+            const data = await getJobs(1, 100);
+            const selector = document.getElementById('jobContext');
+            (data.items || []).forEach(job => {
+                const opt = document.createElement('option');
+                opt.value = job.id;
+                opt.textContent = job.title;
+                selector.appendChild(opt);
+            });
+        } catch (err) {
+            console.error('Failed to load jobs:', err);
+        }
+    }
+
+    // Auto-resize textarea
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function updateCharCounter() {
+        const input = document.getElementById('chatInput');
+        const counter = document.getElementById('charCounter');
+        const len = input.value.length;
+        counter.textContent = len > 0 ? `${len}/1000` : '';
+        counter.style.color = len > 800 ? 'var(--warning)' : 'var(--text-tertiary)';
+
+        document.getElementById('sendBtn').disabled = len === 0 || isWaiting;
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function sendSuggested(prompt) {
+        document.getElementById('chatInput').value = prompt;
+        autoResize(document.getElementById('chatInput'));
+        updateCharCounter();
+        sendMessage();
+    }
+
+    function addMessage(content, role) {
+        const messages = document.getElementById('chatMessages');
+
+        if (role === 'user') {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex; justify-content:flex-end;';
+            div.innerHTML = `<div class="chat-bubble user">${escapeHtml(content)}</div>`;
+            messages.appendChild(div);
+        } else {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex; gap:12px; align-items:flex-start;';
+            div.innerHTML = `
+                <div style="width:32px; height:32px; border-radius:8px; background:var(--gradient-accent); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">AI</div>
+                <div class="chat-bubble assistant">${renderMarkdown(content)}</div>
+            `;
+            messages.appendChild(div);
+        }
+
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function showTyping() {
+        const messages = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.id = 'typingIndicator';
+        div.style.cssText = 'display:flex; gap:12px; align-items:flex-start;';
+        div.innerHTML = `
+            <div style="width:32px; height:32px; border-radius:8px; background:var(--gradient-accent); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">AI</div>
+            <div class="chat-bubble assistant">
+                <div class="typing-indicator">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        `;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function removeTyping() {
+        const el = document.getElementById('typingIndicator');
+        if (el) el.remove();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const query = input.value.trim();
+        if (!query || isWaiting) return;
+
+        // Hide suggested prompts after first message
+        document.getElementById('suggestedPrompts').style.display = 'none';
+
+        addMessage(query, 'user');
+        input.value = '';
+        autoResize(input);
+        updateCharCounter();
+
+        isWaiting = true;
+        document.getElementById('sendBtn').disabled = true;
+        showTyping();
+
+        try {
+            const jobId = document.getElementById('jobContext').value || null;
+            const data = await queryAssistant(query, jobId ? parseInt(jobId) : null);
+            removeTyping();
+            addMessage(data.response, 'assistant');
+        } catch (err) {
+            removeTyping();
+            addMessage('Sorry, I encountered an error: ' + err.message, 'assistant');
+            showToast(err.message, 'error');
+        } finally {
+            isWaiting = false;
+            updateCharCounter();
+        }
+    }
+
+    // Simple HTML escape
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Simple markdown renderer
+    function renderMarkdown(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/^[-•] (.+)/gm, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            .replace(/\n/g, '<br>');
+    }
+
+    loadJobContext();
+</script>
+
+</body>
+</html>

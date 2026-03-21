@@ -11,13 +11,21 @@ except ImportError:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 def hash_password(plain: str) -> str:
-    return pwd_context.hash(plain)
+    # bcrypt limits passwords to 72 bytes. We safely truncate.
+    pwd_bytes = plain.encode('utf-8')[:72]
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(pwd_bytes, salt)
+    return hashed.decode('utf-8')
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    pwd_bytes = plain.encode('utf-8')[:72]
+    try:
+        return bcrypt.checkpw(pwd_bytes, hashed.encode('utf-8'))
+    except ValueError:
+        return False
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()

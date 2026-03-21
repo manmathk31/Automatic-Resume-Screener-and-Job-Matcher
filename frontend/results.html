@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screening Results — AI-RecruitX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+    <aside id="sidebar"></aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="gradient-text">Screening Results</h1>
+                <p class="page-subtitle">AI-ranked candidates based on semantic similarity and skill matching</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="exportBtn" onclick="handleExport()" style="display:none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV
+            </button>
+        </div>
+
+        <!-- Job Selector -->
+        <div class="card-static" style="margin-bottom:24px; padding:20px;">
+            <div style="display:flex; gap:12px; align-items:center;">
+                <select class="input-plain" id="jobSelector" style="flex:1; max-width:400px;" onchange="onJobSelect()">
+                    <option value="">Select a job to screen...</option>
+                </select>
+                <button class="btn btn-primary" id="screenBtn" onclick="handleScreening()" disabled>
+                    <span id="screenBtnText">Run AI Screening →</span>
+                    <div class="spinner spinner-sm" id="screenSpinner" style="display:none;"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Screening progress -->
+        <div id="screeningProgress" style="display:none; margin-bottom:24px;">
+            <div class="card-static" style="text-align:center; padding:48px;">
+                <div class="spinner" style="width:32px; height:32px; border-width:3px; margin:0 auto 16px;"></div>
+                <div style="font-size:16px; font-weight:500; margin-bottom:8px;" id="progressStatus">Analyzing candidates...</div>
+                <div class="progress-track" style="max-width:400px; margin:0 auto;">
+                    <div class="progress-fill accent" id="screenProgress" style="width:0%; transition:width 0.5s ease;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary bar -->
+        <div id="summaryBar" style="display:none; margin-bottom:24px;">
+            <div class="card-static" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; color:var(--text-secondary);" id="summaryText"></span>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsArea"></div>
+
+        <!-- Empty state -->
+        <div id="emptyResults" class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px; height:48px; margin:0 auto 16px;"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <h3>No results yet</h3>
+            <p>Select a job and run AI screening to see ranked candidates</p>
+        </div>
+    </main>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    const user = requireAuth();
+    renderSidebar('results');
+
+    let currentResults = [];
+
+    // Load jobs for selector
+    async function loadJobSelector() {
+        try {
+            const data = await getJobs(1, 100);
+            const selector = document.getElementById('jobSelector');
+            (data.items || []).forEach(job => {
+                const opt = document.createElement('option');
+                opt.value = job.id;
+                opt.textContent = job.title;
+                selector.appendChild(opt);
+            });
+
+            // Auto-select from URL param
+            const params = new URLSearchParams(window.location.search);
+            const jobId = params.get('job_id');
+            if (jobId) {
+                selector.value = jobId;
+                onJobSelect();
+            }
+        } catch (err) {
+            showToast('Failed to load jobs: ' + err.message, 'error');
+        }
+    }
+
+    function onJobSelect() {
+        const val = document.getElementById('jobSelector').value;
+        document.getElementById('screenBtn').disabled = !val;
+    }
+
+    async function handleScreening() {
+        const jobId = parseInt(document.getElementById('jobSelector').value);
+        if (!jobId) return;
+
+        const btn = document.getElementById('screenBtn');
+        const text = document.getElementById('screenBtnText');
+        const spinner = document.getElementById('screenSpinner');
+        const progressEl = document.getElementById('screeningProgress');
+        const progressBar = document.getElementById('screenProgress');
+        const statusText = document.getElementById('progressStatus');
+
+        btn.disabled = true;
+        text.style.display = 'none';
+        spinner.style.display = 'block';
+        progressEl.style.display = 'block';
+        document.getElementById('resultsArea').innerHTML = '';
+        document.getElementById('emptyResults').style.display = 'none';
+        document.getElementById('summaryBar').style.display = 'none';
+
+        // Animated progress messages
+        const messages = [
+            'Analyzing candidates...',
+            'Generating embeddings...',
+            'Computing similarity...',
+            'Ranking results...'
+        ];
+        let msgIndex = 0;
+        const msgInterval = setInterval(() => {
+            msgIndex = (msgIndex + 1) % messages.length;
+            statusText.textContent = messages[msgIndex];
+            progressBar.style.width = ((msgIndex + 1) * 25) + '%';
+        }, 1500);
+
+        try {
+            const results = await runScreening(jobId);
+            clearInterval(msgInterval);
+            progressEl.style.display = 'none';
+            currentResults = results;
+            renderResults(results);
+            showToast('Screening complete! ✓', 'success');
+        } catch (err) {
+            clearInterval(msgInterval);
+            progressEl.style.display = 'none';
+            showToast(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            text.style.display = 'inline';
+            spinner.style.display = 'none';
+        }
+    }
+
+    function renderResults(results) {
+        const area = document.getElementById('resultsArea');
+
+        if (!results || results.length === 0) {
+            document.getElementById('emptyResults').style.display = 'block';
+            document.getElementById('exportBtn').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('emptyResults').style.display = 'none';
+        document.getElementById('exportBtn').style.display = 'flex';
+
+        // Summary
+        const jobTitle = document.getElementById('jobSelector').selectedOptions[0]?.textContent || '';
+        document.getElementById('summaryBar').style.display = 'block';
+        document.getElementById('summaryText').textContent = `${results.length} candidates screened · Job: ${jobTitle} · Run at ${new Date().toLocaleTimeString()}`;
+
+        area.innerHTML = results.map((r, i) => {
+            const sc = scoreColor(r.score);
+            const pct = formatScore(r.score);
+            const rankClass = r.rank <= 3 ? `rank-${r.rank}` : 'rank-other';
+            const rankText = r.rank === 1 ? '🥇 #1' : `#${r.rank}`;
+            const isTop3 = r.rank <= 3;
+            const borderColor = r.rank === 1 ? '#f59e0b' : r.rank === 2 ? '#94a3b8' : r.rank === 3 ? '#cd7c2f' : 'transparent';
+
+            return `
+                <div class="card" style="
+                    display:flex; align-items:center; gap:20px; margin-bottom:12px; padding:20px 24px;
+                    border-left:4px solid ${borderColor};
+                    ${isTop3 ? 'background:rgba(255,255,255,0.03);' : ''}
+                    animation: fadeInUp 0.5s ease ${i * 0.08}s both;
+                ">
+                    <!-- Rank -->
+                    <div class="rank-badge ${rankClass}">${rankText}</div>
+
+                    <!-- Name -->
+                    <div style="flex:1; min-width:120px;">
+                        <div style="font-size:16px; font-weight:600;">${r.rank === 1 ? '🏆 ' : ''}${r.name}</div>
+                        <div style="font-size:12px; color:var(--text-tertiary);">Candidate #${r.candidate_id}</div>
+                    </div>
+
+                    <!-- Score -->
+                    <div style="min-width:140px;">
+                        <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Match Score</div>
+                        <div style="font-size:22px; font-weight:700; color:var(--${sc});">${pct}</div>
+                        <div class="progress-track" style="margin-top:6px;">
+                            <div class="progress-fill ${sc}" id="bar-${i}" style="width:0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div style="flex:1.5; min-width:200px;">
+                        ${r.matched_skills.length > 0 ? `
+                            <div style="margin-bottom:6px;">
+                                <span style="font-size:11px; color:var(--text-tertiary);">Matched:</span>
+                                <div style="display:flex; flex-wrap:wrap; gap:3px; margin-top:3px;">
+                                    ${r.matched_skills.map(s => `<span class="tag tag-success">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${r.missing_skills.length > 0 ? `
+                            <div>
+                                <span style="font-size:11px; color:var(--text-tertiary);">Missing:</span>
+                                <div style="display:flex; flex-wrap:wrap; gap:3px; margin-top:3px;">
+                                    ${r.missing_skills.map(s => `<span class="tag tag-danger">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Animate progress bars
+        setTimeout(() => {
+            results.forEach((r, i) => {
+                const bar = document.getElementById('bar-' + i);
+                if (bar) animateProgressBar(bar, r.score * 100, i * 50);
+            });
+        }, 300);
+    }
+
+    function handleExport() {
+        if (!currentResults.length) return;
+        const data = currentResults.map(r => ({
+            Rank: r.rank,
+            Name: r.name,
+            'Candidate ID': r.candidate_id,
+            'Match Score': formatScore(r.score),
+            'Matched Skills': r.matched_skills.join(', '),
+            'Missing Skills': r.missing_skills.join(', ')
+        }));
+        exportToCSV(data, 'screening_results.csv');
+        showToast('CSV exported! ✓', 'success');
+    }
+
+    loadJobSelector();
+</script>
+
+</body>
+</html>

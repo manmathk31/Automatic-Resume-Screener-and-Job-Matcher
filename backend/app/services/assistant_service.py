@@ -1,5 +1,6 @@
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 try:
     from decouple import config
@@ -7,31 +8,27 @@ try:
 except ImportError:
     api_key = os.getenv("GEMINI_API_KEY")
 
-if api_key:
-    genai.configure(api_key=api_key)
+client = genai.Client(api_key=api_key) if api_key else None
 
 def generate_assistant_response(query: str, context: str) -> str:
-    # a) what the system prompt string looks like (built from context)
+    if not client:
+        return "Error: GEMINI_API_KEY is not configured."
+
     system_prompt = (
-        "You are an expert HR Assistant. Use the provided context to answer questions "
-        "about candidate rankings and job matching.\n\n"
+        "You are an expert HR Assistant. Use the provided context to answer "
+        "questions about candidate rankings and job matching.\n\n"
         f"Context:\n{context}"
     )
-    
-    # b) what the user message string looks like (the query)
-    user_message = query
-    
-    # c) a comment block:
-    # YOUR LLM CALL GOES HERE — see step 3
-    if not api_key:
-        return "Error: GEMINI_API_KEY is not configured in environment."
-        
+
     try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            system_instruction=system_prompt
+        response = client.models.generate_content(
+            model="models/gemini-2.5-flash",
+            contents=query,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                max_output_tokens=1024,
+            )
         )
-        response = model.generate_content(user_message)
         return response.text
     except Exception as e:
         return f"Error communicating with Gemini API: {e}"

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AI-RecruitX — AI-powered resume screening that ranks candidates by real semantic fit. Upload resumes, run intelligent screening, and let AI explain every ranking decision.">
+    <title>AI-RecruitX — AI-Powered Resume Screening & Job Matching</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <!-- ============ CURSOR GLOW ============ -->
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <!-- ============ NAVBAR ============ -->
+    <nav class="landing-nav" id="landingNav">
+        <a href="index.html" class="nav-logo gradient-text-accent">AI-RecruitX</a>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How it Works</a></li>
+            <li><a href="#tech">About</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="login.html" class="btn btn-ghost btn-sm"
+                onclick="event.preventDefault(); navigateLanding('login.html');">Login</a>
+            <a href="register.html" class="btn btn-primary btn-sm"
+                onclick="event.preventDefault(); navigateLanding('register.html');">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+        <!-- Background layers -->
+        <div class="hero-bg">
+            <div class="hero-orb"
+                style="top:-200px; left:-200px; width:700px; height:700px; background:#6366f1; opacity:0.15; filter:blur(120px); animation: orbMove1 8s ease-in-out infinite;">
+            </div>
+            <div class="hero-orb"
+                style="bottom:-200px; right:-100px; width:600px; height:600px; background:#8b5cf6; opacity:0.12; filter:blur(100px); animation: orbMove2 11s ease-in-out infinite;">
+            </div>
+            <div class="hero-orb"
+                style="top:30%; left:50%; width:400px; height:400px; background:#06b6d4; opacity:0.08; filter:blur(80px); animation: orbMove3 14s ease-in-out infinite;">
+            </div>
+            <div class="hero-noise"></div>
+            <div class="hero-grid"></div>
+        </div>
+
+        <!-- Hero content -->
+        <div class="hero-content"
+            style="max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:40px; text-align:left; padding-top:0px; width:100%;">
+            <!-- Left Column: Text -->
+            <div style="flex: 0 1 600px; min-width: 0;">
+                <div class="hero-badge" style="margin-left:0; align-items:flex-start;">
+                    <span>✦</span> Powered by Gemini AI &amp; Sentence Transformers
+                </div>
+
+                <h1 class="hero-headline" style="font-size:64px; text-align:left; margin-left:0;">
+                    <span id="typewriterLine1" class="gradient-text"></span><br>
+                    <span id="typewriterLine2" class="gradient-text-accent"></span>
+                    <span class="typewriter-cursor" id="typewriterCursor">|</span>
+                </h1>
+
+                <p class="hero-subtext" style="max-width:100%; margin:24px 0 32px 0; text-align:left; margin-left:0;">
+                    AI-powered resume screening that ranks candidates by real semantic
+                    fit — not just keywords. Upload resumes, run intelligent screening,
+                    and let AI explain every ranking decision.
+                </p>
+
+                <div class="hero-cta" style="justify-content:flex-start; margin-left:0;">
+                    <a href="register.html" class="btn btn-primary btn-lg"
+                        onclick="event.preventDefault(); navigateLanding('register.html');">
+                        Start Screening Free →
+                    </a>
+                    <a href="#how-it-works" class="btn btn-secondary btn-lg">
+                        See Live Demo
+                    </a>
+                </div>
+
+                <p class="hero-trust" style="text-align:left; margin-left:0;">No credit card required &nbsp;•&nbsp; Free
+                    to use &nbsp;•&nbsp; Setup in 5 minutes</p>
+            </div>
+
+            <!-- Right Column: Mockup -->
+            <div style="flex: 0 1 720px; min-width: 400px;">
+                <!-- Floating mockup -->
+                <div class="hero-mockup" style="margin-top:0;">
+                    <div class="mockup-card" style="max-width:720px; transform:rotate(-3deg); width:100%;">
+                        <!-- Title bar -->
+                        <div
+                            style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <div style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></div>
+                            <div style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></div>
+                            <div style="width:8px; height:8px; border-radius:50%; background:#10b981;"></div>
+                            <span
+                                style="flex:1; text-align:center; font-size:12px; color:var(--text-tertiary);">AI-RecruitX
+                                — Candidate Rankings</span>
+                        </div>
+                        <!-- Scrolling candidate rows -->
+                        <div class="mockup-scroll-viewport">
+                            <div class="mockup-scroll-track" id="mockupScrollTrack">
+                                <!-- Row 1 -->
+                                <div class="mockup-row"
+                                    style="background:rgba(245,158,11,0.06); border-color:rgba(245,158,11,0.15);">
+                                    <div class="mockup-rank"
+                                        style="background:linear-gradient(135deg,#f59e0b,#d97706);">#1
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:14px; font-weight:600;">Manmath Patel</div>
+                                        <div style="font-size:11px; color:var(--text-tertiary);">Full-Stack Developer
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:16px; font-weight:700; color:#10b981;">92.4%</div>
+                                        <div class="mockup-bar">
+                                            <div style="width:92.4%; background:#10b981;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 2 -->
+                                <div class="mockup-row">
+                                    <div class="mockup-rank"
+                                        style="background:linear-gradient(135deg,#94a3b8,#64748b);">#2
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:14px; font-weight:600;">Anup Sharma</div>
+                                        <div style="font-size:11px; color:var(--text-tertiary);">Backend Engineer</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:16px; font-weight:700; color:#10b981;">87.1%</div>
+                                        <div class="mockup-bar">
+                                            <div style="width:87.1%; background:#10b981;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 3 -->
+                                <div class="mockup-row">
+                                    <div class="mockup-rank"
+                                        style="background:linear-gradient(135deg,#cd7c2f,#b45309);">#3
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:14px; font-weight:600;">Vishal Kumar</div>
+                                        <div style="font-size:11px; color:var(--text-tertiary);">ML Engineer</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:16px; font-weight:700; color:#f59e0b;">76.3%</div>
+                                        <div class="mockup-bar">
+                                            <div style="width:76.3%; background:#f59e0b;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 4 -->
+                                <div class="mockup-row">
+                                    <div class="mockup-rank">#4</div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:14px; font-weight:600;">Priya Singh</div>
+                                        <div style="font-size:11px; color:var(--text-tertiary);">Data Analyst</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:16px; font-weight:700; color:#f59e0b;">71.8%</div>
+                                        <div class="mockup-bar">
+                                            <div style="width:71.8%; background:#f59e0b;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 5 -->
+                                <div class="mockup-row">
+                                    <div class="mockup-rank">#5</div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:14px; font-weight:600;">Rahul Desai</div>
+                                        <div style="font-size:11px; color:var(--text-tertiary);">DevOps Engineer</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:16px; font-weight:700; color:#ef4444;">64.2%</div>
+                                        <div class="mockup-bar">
+                                            <div style="width:64.2%; background:#ef4444;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 6 -->
+                                <div class="mockup-row">
+                                    <div class="mockup-rank">#6</div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:14px; font-weight:600;">Neha Gupta</div>
+                                        <div style="font-size:11px; color:var(--text-tertiary);">Frontend Developer
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:16px; font-weight:700; color:#ef4444;">58.9%</div>
+                                        <div class="mockup-bar">
+                                            <div style="width:58.9%; background:#ef4444;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ STATS BAR ============ -->
+    <section class="stats-bar">
+        <div class="stats-grid">
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-value gradient-text-accent"><span class="counter" data-target="384">0</span>-dim</div>
+                <div class="stat-label">Semantic Embeddings</div>
+            </div>
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-value gradient-text-accent">0.7 × Semantic</div>
+                <div class="stat-label">Weighted Scoring</div>
+            </div>
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-value gradient-text-accent">Real-time</div>
+                <div class="stat-label">AI Ranking</div>
+            </div>
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-value gradient-text-accent">Gemini AI</div>
+                <div class="stat-label">Powered Assistant</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="section" id="features" style="padding: 80px 40px;">
+        <div class="container">
+            <div style="text-align:center; margin-bottom:64px;" class="animate-on-scroll">
+                <h2 class="gradient-text" style="font-size:36px; margin-bottom:16px;">Everything you need to hire
+                    smarter</h2>
+                <p style="color:var(--text-secondary); font-size:16px;">Built with production-grade AI, not just keyword
+                    matching</p>
+            </div>
+
+            <div class="bento-grid">
+                <!-- Feature 1 — Semantic Understanding (spans 2) -->
+                <div class="card bento-item span-2 animate-on-scroll">
+                    <div class="bento-icon" style="background:rgba(99,102,241,0.12);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                        </svg>
+                    </div>
+                    <h3>Beyond keywords — real meaning</h3>
+                    <p>Uses sentence-transformer embeddings to understand context, synonyms, and semantic similarity
+                        between resumes and job descriptions. Our 384-dimensional vectors capture nuanced meaning.</p>
+                    <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+                        <span class="tag tag-accent">Sentence-BERT</span>
+                        <span class="tag tag-accent">384-dim Embeddings</span>
+                        <span class="tag tag-accent">Cosine Similarity</span>
+                    </div>
+                </div>
+
+                <!-- Feature 2 — Explainable Ranking -->
+                <div class="card bento-item animate-on-scroll">
+                    <div class="bento-icon" style="background:rgba(16,185,129,0.12);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                    </div>
+                    <h3>Explainable Ranking</h3>
+                    <p>See exactly which skills matched and which are missing. Transparent scoring with matched/missing
+                        skill breakdowns.</p>
+                    <div style="display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;">
+                        <span class="tag tag-success">Python ✓</span>
+                        <span class="tag tag-success">SQL ✓</span>
+                        <span class="tag tag-danger">Docker ✗</span>
+                    </div>
+                </div>
+
+                <!-- Feature 3 — AI Assistant -->
+                <div class="card bento-item animate-on-scroll">
+                    <div class="bento-icon" style="background:rgba(139,92,246,0.12);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                        </svg>
+                    </div>
+                    <h3>AI Assistant</h3>
+                    <p>Ask anything about your candidates. Powered by Gemini 2.0 Flash with full screening context.</p>
+                    <div
+                        style="margin-top:12px; background:rgba(255,255,255,0.03); border-radius:10px; padding:12px; font-size:12px; color:var(--text-secondary);">
+                        <div style="color:var(--accent-hover); margin-bottom:4px;">You:</div>
+                        "Who is the best candidate for this job?"
+                    </div>
+                </div>
+
+                <!-- Feature 4 — Batch Upload -->
+                <div class="card bento-item animate-on-scroll">
+                    <div class="bento-icon" style="background:rgba(6,182,212,0.12);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <h3>Batch Upload</h3>
+                    <p>Upload multiple PDF resumes at once. Automatic text extraction, skill detection, and embedding
+                        generation.</p>
+                </div>
+
+                <!-- Feature 5 — Secure -->
+                <div class="card bento-item animate-on-scroll">
+                    <div class="bento-icon" style="background:rgba(245,158,11,0.12);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0110 0v4" />
+                        </svg>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>JWT authentication, isolated user workspaces, rate limiting. Your candidate data stays private.
+                    </p>
+                </div>
+
+                <!-- Feature 6 — Architecture (spans 2) -->
+                <div class="card bento-item span-2 animate-on-scroll">
+                    <div class="bento-icon" style="background:rgba(99,102,241,0.12);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" />
+                            <line x1="8" y1="21" x2="16" y2="21" />
+                            <line x1="12" y1="17" x2="12" y2="21" />
+                        </svg>
+                    </div>
+                    <h3>Production Ready Architecture</h3>
+                    <p>Built on FastAPI with PostgreSQL via Supabase, Alembic migrations, and a modular ML pipeline. Not
+                        a prototype — a real production stack.</p>
+                    <div style="display:flex; gap:16px; margin-top:16px; flex-wrap:wrap;">
+                        <span
+                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span> FastAPI
+                        </span>
+                        <span
+                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#6366f1;"></span>
+                            PostgreSQL
+                        </span>
+                        <span
+                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span> Supabase
+                        </span>
+                        <span
+                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span> Python
+                            ML Pipeline
+                        </span>
+                        <span
+                            style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#06b6d4;"></span> Gemini
+                            2.0
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section" id="how-it-works" style="padding: 80px 40px;">
+        <div class="container">
+            <div style="text-align:center; margin-bottom:64px;" class="animate-on-scroll">
+                <h2 class="gradient-text" style="font-size:36px; margin-bottom:16px;">From resume to ranked in seconds
+                </h2>
+                <p style="color:var(--text-secondary); font-size:16px;">Six simple steps to AI-powered hiring</p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="card step-card animate-on-scroll">
+                    <div class="step-number">01</div>
+                    <div class="step-icon" style="background:rgba(99,102,241,0.12);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                    </div>
+                    <h3>Register & Login</h3>
+                    <p>Create your account with secure JWT authentication</p>
+                </div>
+                <div class="card step-card animate-on-scroll">
+                    <div class="step-number">02</div>
+                    <div class="step-icon" style="background:rgba(139,92,246,0.12);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                        </svg>
+                    </div>
+                    <h3>Create a Job</h3>
+                    <p>Define the role, description, and required skills</p>
+                </div>
+                <div class="card step-card animate-on-scroll">
+                    <div class="step-number">03</div>
+                    <div class="step-icon" style="background:rgba(6,182,212,0.12);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <h3>Upload Resumes</h3>
+                    <p>Drag & drop PDFs — batch upload supported</p>
+                </div>
+                <div class="card step-card animate-on-scroll">
+                    <div class="step-number">04</div>
+                    <div class="step-icon" style="background:rgba(245,158,11,0.12);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                            <path d="M12 2a4 4 0 014 4c0 1.95-1.4 3.58-3.25 3.93L12 22" />
+                            <path d="M12 2a4 4 0 00-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                        </svg>
+                    </div>
+                    <h3>Run AI Screening</h3>
+                    <p>Semantic analysis + skill matching generates scores</p>
+                </div>
+                <div class="card step-card animate-on-scroll">
+                    <div class="step-number">05</div>
+                    <div class="step-icon" style="background:rgba(16,185,129,0.12);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </div>
+                    <h3>Get Ranked Results</h3>
+                    <p>Candidates ranked by semantic + skill match score</p>
+                </div>
+                <div class="card step-card animate-on-scroll">
+                    <div class="step-number">06</div>
+                    <div class="step-icon" style="background:rgba(99,102,241,0.12);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                        </svg>
+                    </div>
+                    <h3>Ask AI Assistant</h3>
+                    <p>Get AI insights, interview questions, and comparisons</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ TECH MARQUEE ============ -->
+    <section class="section" id="tech" style="padding: 48px 0;">
+        <div style="text-align:center; margin-bottom:32px;" class="animate-on-scroll">
+            <h3 class="gradient-text" style="font-size:20px;">Built with cutting-edge technology</h3>
+        </div>
+        <div class="marquee-container">
+            <div class="marquee-track">
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                        stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg> FastAPI</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1"
+                        stroke-width="2">
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                    </svg> Python</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6"
+                        stroke-width="2">
+                        <path d="M4 7V4a2 2 0 012-2h8.5L20 7.5V20a2 2 0 01-2 2H4" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <path d="M2 15h10" />
+                        <path d="M7 11v8" />
+                    </svg> Supabase</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4"
+                        stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" />
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                    </svg> PostgreSQL</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                        stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                    </svg> Gemini 2.0 Flash</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6"
+                        stroke-width="2">
+                        <path d="M12 2a4 4 0 014 4c0 1.95-1.4 3.58-3.25 3.93L12 22" />
+                        <path d="M12 2a4 4 0 00-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                    </svg> Sentence-Transformers</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444"
+                        stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0110 0v4" />
+                    </svg> JWT Auth</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                        stroke-width="2">
+                        <path d="M18 20V10M12 20V4M6 20v-6" />
+                    </svg> Cosine Similarity</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                        stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg> FastAPI</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1"
+                        stroke-width="2">
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                    </svg> Python</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6"
+                        stroke-width="2">
+                        <path d="M4 7V4a2 2 0 012-2h8.5L20 7.5V20a2 2 0 01-2 2H4" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <path d="M2 15h10" />
+                        <path d="M7 11v8" />
+                    </svg> Supabase</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4"
+                        stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" />
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                    </svg> PostgreSQL</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                        stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                    </svg> Gemini 2.0 Flash</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6"
+                        stroke-width="2">
+                        <path d="M12 2a4 4 0 014 4c0 1.95-1.4 3.58-3.25 3.93L12 22" />
+                        <path d="M12 2a4 4 0 00-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                    </svg> Sentence-Transformers</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444"
+                        stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0110 0v4" />
+                    </svg> JWT Auth</span>
+                <span class="marquee-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                        stroke-width="2">
+                        <path d="M18 20V10M12 20V4M6 20v-6" />
+                    </svg> Cosine Similarity</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="landing-footer">
+        <div class="footer-grid">
+            <div>
+                <div class="nav-logo gradient-text-accent" style="font-size:20px; font-weight:800; margin-bottom:4px;">
+                    AI-RecruitX</div>
+                <p class="footer-tagline">AI-powered hiring for modern HR teams. Screen smarter, hire better — with
+                    explainable rankings and real semantic understanding.</p>
+            </div>
+            <div>
+                <div class="footer-heading">Product</div>
+                <ul class="footer-links">
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                    <li><a href="#how-it-works">How it Works</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-heading">Built For</div>
+                <ul class="footer-links">
+                    <li><a href="#">Datathon 2026</a></li>
+                    <li><a href="#">FastAPI + PostgreSQL</a></li>
+                    <li><a href="#">ML Pipeline</a></li>
+                    <li><a href="#">Gemini AI</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 AI-RecruitX. Made with ♥ by Tech Titans</p>
+        </div>
+    </footer>
+
+    <!-- ============ SCRIPTS ============ -->
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // Page transition helper for landing page
+        function navigateLanding(page) {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => { window.location.href = page; }, 300);
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('landingNav');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Cursor glow effect
+        const cursorGlow = document.getElementById('cursorGlow');
+        document.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+
+        // Typewriter effect
+        function typeWriter(elementId, text, speed, callback) {
+            const el = document.getElementById(elementId);
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    el.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
+        // Start typewriter after delay
+        setTimeout(() => {
+            typeWriter('typewriterLine1', 'Screen Smarter.', 60, () => {
+                setTimeout(() => {
+                    typeWriter('typewriterLine2', 'Hire Better.', 60, () => {
+                        // Hide cursor after typing done
+                        setTimeout(() => {
+                            document.getElementById('typewriterCursor').style.display = 'none';
+                        }, 1500);
+                    });
+                }, 200);
+            });
+        }, 800);
+
+        // Counter animation on scroll
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.dataset.target);
+                    if (target) {
+                        animateCounter(el, target, 2000);
+                    }
+                    counterObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.counter').forEach(el => {
+            counterObserver.observe(el);
+        });
+    </script>
+
+</body>
+
+</html>
