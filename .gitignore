@@ -65,3 +65,4 @@ __pycache__/
 resumes/*.pdf
 logs/
 .DS_Store
+backend/.env

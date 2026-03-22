@@ -7,6 +7,7 @@ from sqlalchemy import text
 from app.routers import resume_router, job_router, screening_router, candidate_router, assistant_router, auth_router
 from app.core.limiter import limiter
 from app.database.database import get_db
+from app.static_files import mount_frontend
 import os
 import logging
 from logging.handlers import RotatingFileHandler
@@ -85,6 +86,8 @@ app.include_router(job_router.router, prefix="/jobs", tags=["Jobs"])
 app.include_router(screening_router.router, prefix="/screening", tags=["Screening"])
 app.include_router(candidate_router.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(assistant_router.router, prefix="/assistant", tags=["Assistant"])
+
+mount_frontend(app)
 
 @app.get("/")
 def read_root():
