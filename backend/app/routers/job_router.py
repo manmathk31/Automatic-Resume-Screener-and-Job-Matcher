@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.database import crud
@@ -26,3 +26,13 @@ async def create_job(job: request_schemas.JobCreate, db: Session = Depends(get_d
     text_repr = job.description + " " + " ".join(job.required_skills)
     embedding = generate_embedding_real(text_repr)
     return crud.create_job(db=db, job=job, embedding=embedding, user_id=current_user.get("user_id"))
+
+@router.delete("/{job_id}")
+async def delete_job(job_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    job = crud.get_job(db, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.user_id != current_user.get("user_id"):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this job")
+    crud.delete_job(db, job_id)
+    return {"detail": "Job deleted successfully"}

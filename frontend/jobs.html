@@ -82,8 +82,9 @@
     </main>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/auth.js"></script>
-<script src="js/api.js"></script>
+<script src="js/api.js?v=2"></script>
 <script src="js/utils.js"></script>
 <script>
     const user = requireAuth();
@@ -209,6 +210,9 @@
                             <div class="spinner spinner-sm" style="display:none;"></div>
                         </button>
                         <a href="results.html?job_id=${job.id}" class="btn btn-ghost btn-sm" style="flex:1;" onclick="event.preventDefault(); navigate('results.html?job_id=${job.id}');">View Results</a>
+                        <button class="btn btn-ghost btn-sm" onclick="handleDeleteJob(${job.id}, '${job.title.replace(/'/g, "\\\'")}')" style="color:var(--danger); padding:6px 10px;" title="Delete job">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -251,6 +255,17 @@
         currentPage += delta;
         loadJobs();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function handleDeleteJob(id, title) {
+        if (!confirm(`Delete job "${title}"? This will also remove all screening results for this job.`)) return;
+        try {
+            await deleteJob(id);
+            showToast(`"${title}" deleted successfully`, 'success');
+            loadJobs();
+        } catch (err) {
+            showToast('Failed to delete: ' + err.message, 'error');
+        }
     }
 
     loadJobs();

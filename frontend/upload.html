@@ -74,6 +74,7 @@
                                 <th>Name</th>
                                 <th>Skills</th>
                                 <th>Uploaded</th>
+                                <th style="width:80px; text-align:center;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="candidatesBody"></tbody>
@@ -97,8 +98,9 @@
     </main>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/auth.js"></script>
-<script src="js/api.js"></script>
+<script src="js/api.js?v=2"></script>
 <script src="js/utils.js"></script>
 <script>
     const user = requireAuth();
@@ -248,7 +250,7 @@
             document.getElementById('emptyCandidates').style.display = 'none';
 
             tbody.innerHTML = data.items.map(c => `
-                <tr>
+                <tr id="candidate-row-${c.id}">
                     <td style="font-weight:500;">${c.name}</td>
                     <td>
                         <div style="display:flex; gap:4px; flex-wrap:wrap;">
@@ -257,6 +259,12 @@
                         </div>
                     </td>
                     <td style="color:var(--text-secondary); font-size:13px;">${formatDate(c.created_at)}</td>
+                    <td style="text-align:center;">
+                        <button class="btn btn-ghost btn-sm" onclick="handleDeleteCandidate(${c.id}, '${c.name.replace(/'/g, "\\'")}')"
+                            style="color:var(--danger); padding:6px 8px;" title="Delete candidate">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        </button>
+                    </td>
                 </tr>
             `).join('');
 
@@ -271,13 +279,24 @@
                 document.getElementById('candidatePagination').style.display = 'none';
             }
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-tertiary); padding:24px;">Failed to load candidates</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-tertiary); padding:24px;">Failed to load candidates</td></tr>`;
         }
     }
 
     function changeCandidatePage(delta) {
         candidatePage += delta;
         loadCandidates();
+    }
+
+    async function handleDeleteCandidate(id, name) {
+        if (!confirm(`Delete candidate "${name}"? This will also remove their screening results.`)) return;
+        try {
+            await deleteCandidate(id);
+            showToast(`${name} deleted successfully`, 'success');
+            loadCandidates();
+        } catch (err) {
+            showToast('Failed to delete: ' + err.message, 'error');
+        }
     }
 
     loadCandidates();

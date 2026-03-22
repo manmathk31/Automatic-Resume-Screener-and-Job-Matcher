@@ -3,6 +3,8 @@ import logging
 from typing import List
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException
 from sqlalchemy.orm import Session
+import tempfile
+
 from app.database.database import get_db
 from app.services import candidate_service
 from app.schemas import response_schemas
@@ -16,6 +18,8 @@ from ml_pipeline.embeddings.embedding_generator import generate_embedding
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 
 def process_single_resume(file_path: str, filename: str, db: Session, user_id: int = None):
     try:
@@ -42,55 +46,69 @@ def process_single_resume(file_path: str, filename: str, db: Session, user_id: i
             db.refresh(db_candidate)
         return db_candidate
     except Exception as e:
-        logger.error(f"Failed to process {filename}: {e}")
+        logger.error(f"Failed to process resume '{filename}': {e}", exc_info=True)
         return None
 
 @router.post("/upload", response_model=response_schemas.CandidateResponse)
 async def upload_resume(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+    
     contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="File too large. Maximum allowed size is 10MB."
+        )
+
     if not contents.startswith(b"%PDF"):
         raise HTTPException(status_code=400, detail="Invalid file format. Magic bytes do not match %PDF.")
         
-    temp_path = f"/tmp/{file.filename}"
+    temp_path = None
     try:
-        # Create /tmp directory if it doesn't exist (e.g. on Windows)
-        os.makedirs("/tmp", exist_ok=True)
-        with open(temp_path, "wb") as f:
-            f.write(contents)
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+            tmp.write(contents)
+            temp_path = tmp.name
             
         db_candidate = process_single_resume(temp_path, file.filename, db, user_id=current_user.get("user_id"))
         if db_candidate is None:
-            raise Exception("Failed to process resume")
+            raise HTTPException(
+                status_code=422,
+                detail="Could not process this resume. Ensure it is a valid PDF with readable text."
+            )
         return db_candidate
     finally:
-        if os.path.exists(temp_path):
+        if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
 
 @router.post("/upload-batch", response_model=List[response_schemas.CandidateResponse])
 async def upload_resume_batch(files: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     created_candidates = []
-    # Create /tmp directory if it doesn't exist (e.g. on Windows)
-    os.makedirs("/tmp", exist_ok=True)
+    
     for file in files:
         if not file.filename.lower().endswith(".pdf"):
             logger.warning(f"File {file.filename} skipped: Not a .pdf extension")
             continue
+            
         contents = await file.read()
+        if len(contents) > MAX_FILE_SIZE:
+            logger.warning(f"File {file.filename} skipped: exceeds 10MB limit")
+            continue
+
         if not contents.startswith(b"%PDF"):
             logger.warning(f"File {file.filename} skipped: Magic bytes do not match %PDF")
             continue
             
-        temp_path = f"/tmp/{file.filename}"
+        temp_path = None
         try:
-            with open(temp_path, "wb") as f:
-                f.write(contents)
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+                tmp.write(contents)
+                temp_path = tmp.name
                 
             db_candidate = process_single_resume(temp_path, file.filename, db, user_id=current_user.get("user_id"))
             if db_candidate:
                 created_candidates.append(db_candidate)
         finally:
-            if os.path.exists(temp_path):
+            if temp_path and os.path.exists(temp_path):
                 os.remove(temp_path)
     return created_candidates

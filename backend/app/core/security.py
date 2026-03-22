@@ -2,11 +2,15 @@ from datetime import datetime, timedelta
 import os
 from passlib.context import CryptContext
 from jose import JWTError, jwt
+
 try:
     from decouple import config
-    SECRET_KEY = config("SECRET_KEY", default="supersecret")
+    SECRET_KEY = config("SECRET_KEY")
 except ImportError:
-    SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
+    SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY or len(SECRET_KEY) < 32:
+    raise ValueError("SECRET_KEY env var must be set and at least 32 characters long")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60

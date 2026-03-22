@@ -359,7 +359,8 @@ function renderSidebar(activePage) {
         { id: 'jobs', label: 'Jobs', icon: 'briefcase', href: 'jobs.html' },
         { id: 'upload', label: 'Upload Resumes', icon: 'upload', href: 'upload.html' },
         { id: 'results', label: 'Results', icon: 'bar-chart-3', href: 'results.html' },
-        { id: 'assistant', label: 'AI Assistant', icon: 'message-circle', href: 'assistant.html' }
+        { id: 'assistant', label: 'AI Assistant', icon: 'message-circle', href: 'assistant.html' },
+        { id: 'profile', label: 'My Profile', icon: 'user', href: 'profile.html' }
     ];
 
     const sidebar = document.getElementById('sidebar');

@@ -3,7 +3,7 @@
 // All backend communication goes through this module
 // ============================================================
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = '';
 
 /**
  * Build auth headers. Omit Content-Type for FormData requests.
@@ -99,6 +99,17 @@ async function createJob(title, description, requiredSkills) {
     });
 }
 
+/**
+ * Delete a job by ID.
+ * DELETE /jobs/{id}  → { detail }
+ */
+async function deleteJob(id) {
+    return apiFetch(`/jobs/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+    });
+}
+
 // ======================== CANDIDATES ========================
 
 /**
@@ -117,6 +128,17 @@ async function getCandidates(page = 1, pageSize = 20) {
  */
 async function getCandidate(id) {
     return apiFetch(`/candidates/${id}`, {
+        headers: getHeaders()
+    });
+}
+
+/**
+ * Delete a candidate by ID.
+ * DELETE /candidates/{id}  → { detail }
+ */
+async function deleteCandidate(id) {
+    return apiFetch(`/candidates/${id}`, {
+        method: 'DELETE',
         headers: getHeaders()
     });
 }

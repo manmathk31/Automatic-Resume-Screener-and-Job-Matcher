@@ -75,3 +75,29 @@ def create_screening_result(db: Session, job_id: int, candidate_id: int, score: 
 
 def get_screening_results_for_job(db: Session, job_id: int):
     return db.query(screening_model.ScreeningResult).filter(screening_model.ScreeningResult.job_id == job_id).order_by(screening_model.ScreeningResult.rank).all()
+
+def delete_screening_results_for_candidate(db: Session, candidate_id: int):
+    db.query(screening_model.ScreeningResult).filter(screening_model.ScreeningResult.candidate_id == candidate_id).delete()
+    db.commit()
+
+def delete_candidate(db: Session, candidate_id: int):
+    candidate = db.query(candidate_model.Candidate).filter(candidate_model.Candidate.id == candidate_id).first()
+    if candidate:
+        delete_screening_results_for_candidate(db, candidate_id)
+        db.delete(candidate)
+        db.commit()
+        return True
+    return False
+
+def delete_screening_results_for_job(db: Session, job_id: int):
+    db.query(screening_model.ScreeningResult).filter(screening_model.ScreeningResult.job_id == job_id).delete()
+    db.commit()
+
+def delete_job(db: Session, job_id: int):
+    job = db.query(job_model.Job).filter(job_model.Job.id == job_id).first()
+    if job:
+        delete_screening_results_for_job(db, job_id)
+        db.delete(job)
+        db.commit()
+        return True
+    return False

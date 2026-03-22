@@ -11,34 +11,56 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-os.makedirs("logs", exist_ok=True)
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+log_handlers = [logging.StreamHandler()]
+if ENVIRONMENT == "development":
+    os.makedirs("logs", exist_ok=True)
+    log_handlers.append(
+        RotatingFileHandler("logs/app.log", maxBytes=5_000_000, backupCount=3)
+    )
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(module)s | %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        RotatingFileHandler("logs/app.log", maxBytes=5_000_000, backupCount=3)
-    ]
+    handlers=log_handlers
 )
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="AI Resume Screening API",
-    description="Backend API for Datathon 2026 AI Resume Screening + HR Assistant",
-    version="1.0.0"
+    description="AI Resume Screening + HR Assistant — Datathon 2026",
+    version="1.0.0",
+    docs_url="/docs" if ENVIRONMENT == "development" else None,
+    redoc_url="/redoc" if ENVIRONMENT == "development" else None,
 )
 
 # Configure CORS
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+raw_origins = os.getenv("FRONTEND_URL", "http://localhost:5173")
+allowed_origins = [url.strip() for url in raw_origins.split(",")]
+for dev_origin in ["http://localhost:5173", "http://localhost:8000"]:
+    if dev_origin not in allowed_origins:
+        allowed_origins.append(dev_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.state.limiter = limiter
+
+@app.on_event("startup")
+async def validate_environment():
+    required_vars = ["DATABASE_URL", "SECRET_KEY", "GEMINI_API_KEY"]
+    missing = [var for var in required_vars if not os.getenv(var)]
+    if missing:
+        logger.error(f"STARTUP FAILED — missing env vars: {missing}")
+        raise RuntimeError(f"Missing required environment variables: {missing}")
+    logger.info("All required environment variables are present")
+    logger.info("Application startup complete")
 
 @app.exception_handler(RateLimitExceeded)
 async def ratelimit_handler(request: Request, exc: RateLimitExceeded):
