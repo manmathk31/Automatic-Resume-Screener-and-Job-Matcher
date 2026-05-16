@@ -1,7 +1,8 @@
 <div align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=250&section=header&text=AI%20Resume%20Screener%20&%20Job%20Matcher&fontSize=40&animation=fadeIn&fontAlignY=38&desc=Intelligent%20HR%20Assistant%20NLP&descAlignY=55&descAlign=50" alt="Header" width="100%" />
-</div>
 
+
+<p align="center">
     <strong>An advanced, AI-powered recruitment platform designed to automate resume screening, rank candidates, and match them with the perfect job opportunities using Google's Gemini LLM.</strong>
   </p>
 
